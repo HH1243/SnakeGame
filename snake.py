@@ -1,5 +1,6 @@
 import pygame
 import random
+import time
 
 import pygame.freetype
 
@@ -62,7 +63,7 @@ fruitSpawn = True
 # Variable to store user score
 score = 0
 
-
+# function to display score
 def scoreboard ():
     
     # font and size for scoreboard
@@ -71,10 +72,41 @@ def scoreboard ():
     # create display on surface object
     scoreSurface = scoreFont.render('Score: ' + str(score), True, white)
     screen.blit(scoreSurface, (10, 10))
-  
+
+def gameover ():
+
+    # fills background
+    screen.fill(green)
+
+    # font and size for gameover
+    gameoverFont = pygame.font.Font('Comic Sans MS.ttf', 50) 
+
+    # Render the two lines separately
+    gameoverText = gameoverFont.render('Game Over', True, white)
+    scoreText = gameoverFont.render('Score: ' + str(score), True, white)
+
+    # Get the positions to center the text on the screen
+    gameoverRect = gameoverText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 - 20))
+    scoreRect = scoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 + 40))
+
+    # Blit the text to the screen
+    screen.blit(gameoverText, gameoverRect)
+    screen.blit(scoreText, scoreRect)
+
+
+    pygame.display.flip()
+    
+    # quit after 3 seconds 
+    time.sleep(3)
+
+    pygame.quit()
+
+    quit()
+
 
 while True:
-    # Process player inputs.
+
+    # Process player inputs 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
@@ -103,11 +135,12 @@ while True:
     snakeBody.insert(0, list(snakePosition))
 
 
+    # Adds to score and snake size if fruit is eaten
     if (snakePosition[0] == fruitPosition[0]) and (snakePosition[1] == fruitPosition[1]):
 
         fruitSpawn = False
 
-        score += 10
+        score += 1
 
     else:
 
@@ -120,9 +153,8 @@ while True:
         fruitPosition = [random.randrange(2, (windowSize_x - 10) // 20) * 20, (random.randrange(2, (windowSize_y - 10) // 20) * 20)]
 
 
-    
     fruitSpawn = True
-
+    
     # fills background
     screen.fill(green)
     
@@ -131,11 +163,33 @@ while True:
 
         pygame.draw.rect(screen, yellow, pygame.Rect(pos[0], pos[1], 20, 20))
     
+    # creates a red box for the fruit
     pygame.draw.rect(screen, red, pygame.Rect(fruitPosition[0], fruitPosition[1], 20, 20))
 
+    # call scoreboard function to display current score
     scoreboard()
 
-    pygame.display.flip()  # Refresh on-screen display
+    # gameover conditions
+
+    if (snakePosition[0]) < 0 or (snakePosition[0] > windowSize_x - 20): # if snake goes out of bounds in x plane
+
+        gameover()
+
+    if (snakePosition[1]) < 0 or (snakePosition[1] > windowSize_y - 20): # if snake goes out of bounds in y plane
+
+        gameover()
+
+    
+    for pos in snakeBody[1:]: # if snake runs into own body
+
+        if snakePosition[0] == pos[0]:
+
+            if snakePosition[1] == pos[1]:
+
+                gameover()
+
+    # Refresh on-screen display
+    pygame.display.flip() 
 
     clock.tick(snakeSpeed)
 
