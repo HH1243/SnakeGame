@@ -2,7 +2,7 @@ import pygame
 import random
 import time
 
-import pygame.freetype
+
 
 # defining window size
 windowSize_x = 1280
@@ -12,7 +12,8 @@ windowSize_y = 720
 green = pygame.Color(0, 100, 33)
 yellow = pygame.Color(255, 255, 0)
 red = pygame.Color(255, 0, 0)
-white = pygame.Color(0, 0, 0)
+black = pygame.Color(0, 0, 0)
+white = pygame.Color(255, 255, 255)
 
 pygame.init()
 
@@ -63,16 +64,25 @@ fruitSpawn = True
 # Variable to store user score
 score = 0
 
+# Variable to store high score
+highScore = 0
+
 # function to display score
 def scoreboard ():
     
     # font and size for scoreboard
     scoreFont = pygame.font.Font('Comic Sans MS.ttf', 30)
+    highscoreFont = pygame.font.Font('Comic Sans MS.ttf', 19)
 
     # create display on surface object
-    scoreSurface = scoreFont.render('Score: ' + str(score), True, white)
-    screen.blit(scoreSurface, (10, 10))
+    scoreSurface = scoreFont.render('Score: ' + str(score), True, white, black)
+    highscoreSurface = highscoreFont.render('Highscore: ' + str(highScore), True, red, black)
 
+    screen.blit(scoreSurface, (10, 10))
+    screen.blit(highscoreSurface, (10, 52))
+
+
+# function for gameover screen
 def gameover ():
 
     # fills background
@@ -82,16 +92,19 @@ def gameover ():
     gameoverFont = pygame.font.Font('Comic Sans MS.ttf', 50) 
 
     # Render the two lines separately
-    gameoverText = gameoverFont.render('Game Over', True, white)
-    scoreText = gameoverFont.render('Score: ' + str(score), True, white)
+    gameoverText = gameoverFont.render('Game Over', True, white, black)
+    scoreText = gameoverFont.render('Score: ' + str(score), True, white, black)
+    highscoreText = gameoverFont.render('Highscore: ' + str(highScore), True, red, black)
 
     # Get the positions to center the text on the screen
-    gameoverRect = gameoverText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 - 20))
-    scoreRect = scoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 + 40))
+    gameoverRect = gameoverText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 - 40))
+    scoreRect = scoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 + 30))
+    highscoreRect = highscoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 + 100))
 
     # Blit the text to the screen
     screen.blit(gameoverText, gameoverRect)
     screen.blit(scoreText, scoreRect)
+    screen.blit(highscoreText, highscoreRect)
 
 
     pygame.display.flip()
@@ -102,6 +115,31 @@ def gameover ():
     pygame.quit()
 
     quit()
+
+# function to update or grab highscore
+def updateHighscore ():
+
+    # open file in read mode
+    f = open('score.txt', 'r')
+    # read all lines into a list
+    firstLine = f.readline().strip()
+    # save first line into variable 
+    highScore = int(firstLine)
+
+    f.close()
+
+    # update if the current score is higher than highscore
+    if score > highScore:
+
+        # open file in write mode
+        file = open('score.txt', 'w')
+        # write current score in file
+        file.write(str(score))
+        # close file
+        file.close()
+
+    return highScore
+
 
 
 while True:
@@ -152,11 +190,18 @@ while True:
 
         fruitPosition = [random.randrange(2, (windowSize_x - 10) // 20) * 20, (random.randrange(2, (windowSize_y - 10) // 20) * 20)]
 
+    # fills background
+    screen.fill(green)
+
+    # call update highscore function
+    highScore = updateHighscore()
+
+    # call scoreboard function to display current score
+    scoreboard()
 
     fruitSpawn = True
     
-    # fills background
-    screen.fill(green)
+    
     
     # creates green box for each position in snakeBody
     for pos in snakeBody:
@@ -166,8 +211,6 @@ while True:
     # creates a red box for the fruit
     pygame.draw.rect(screen, red, pygame.Rect(fruitPosition[0], fruitPosition[1], 20, 20))
 
-    # call scoreboard function to display current score
-    scoreboard()
 
     # gameover conditions
 
@@ -181,7 +224,7 @@ while True:
 
     
     for pos in snakeBody[1:]: # if snake runs into own body
-
+        
         if snakePosition[0] == pos[0]:
 
             if snakePosition[1] == pos[1]:
