@@ -6,13 +6,15 @@ windowSize_x = 1280
 windowSize_y = 720
 
 # defining colours
-green = pygame.Color(0, 255, 0)
-
+green = pygame.Color(0, 100, 33)
+yellow = pygame.Color(255, 255, 0)
+red = pygame.Color(255, 0, 0)
 
 pygame.init()
 
 pygame.display.set_caption("Snake Game")
-screen = pygame.display.set_mode((windowSize_x,windowSize_y))
+
+screen = pygame.display.set_mode((windowSize_x,windowSize_y)) #, pygame.SCALED | pygame.DOUBLEBUF)
 
 clock = pygame.time.Clock()
 
@@ -22,13 +24,38 @@ snakeSpeed = 15
 # define starting snake position and first 4 blocks of body
 snakePosition = [(windowSize_x//2), (windowSize_y//2)]
 snakeBody = [[(windowSize_x//2), (windowSize_y//2)], 
-             [((windowSize_x//2) - 10), (windowSize_y//2)], 
              [((windowSize_x//2) - 20), (windowSize_y//2)], 
-             [((windowSize_x//2) - 30), (windowSize_y//2)]]
+             [((windowSize_x//2) - 40), (windowSize_y//2)], 
+             [((windowSize_x//2) - 60), (windowSize_y//2)]]
 
 
-# define defualt snake direction
+# define default snake direction
 snakeDirection = 'RIGHT'
+
+# variable for input direction from user
+changedir = 'RIGHT'
+
+# Dictionary to map opposite directions
+oppositeDirection = {
+    'UP': 'DOWN',
+    'DOWN': 'UP',
+    'RIGHT': 'LEFT',
+    'LEFT': 'RIGHT'
+}
+
+# Dictionary to map position changes
+positionChange = {
+
+    'UP': (0, -20),
+    'DOWN': (0, 20),
+    'RIGHT': (20, 0),
+    'LEFT': (-20, 0)
+}
+
+# Creates random x and y coordinates within dimensions of window
+fruitPosition = ((random.randrange(1, windowSize_x // 20) * 20, (random.randrange(1, windowSize_y // 20) * 20)))
+
+fruitSpawn = True
 
 while True:
     # Process player inputs.
@@ -39,35 +66,57 @@ while True:
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                snakeDirection = 'UP'
+                changedir = 'UP'
             elif event.key == pygame.K_s:
-                snakeDirection = 'DOWN'
+                changedir = 'DOWN'
             elif event.key == pygame.K_d:
-                snakeDirection = 'RIGHT'
+                changedir = 'RIGHT'
             elif event.key == pygame.K_a:
-                snakeDirection = 'LEFT'
+                changedir = 'LEFT'
     
+    # Check if the changed direction is not the opposite of the current direction
+    if changedir != oppositeDirection[snakeDirection]:
+        snakeDirection = changedir
+    
+    # Use dictionary to change direction
+    movement = positionChange[snakeDirection]
+    snakePosition[0] += movement[0]
+    snakePosition[1] += movement[1]
 
-    if snakeDirection == 'UP':
-        snakePosition[1] -= 10
-    elif snakeDirection == 'DOWN':
-        snakePosition[1] += 10
-    elif snakeDirection == 'LEFT':
-        snakePosition[0] -= 10
-    elif snakeDirection == 'RIGHT':
-        snakePosition[0] += 10
-    
+    # inserts new snake head position to the front of the snake body array
     snakeBody.insert(0, list(snakePosition))
-    snakeBody.pop()
 
-    screen.fill(pygame.Color(0, 0, 0))
 
+    if (snakePosition[0] == fruitPosition[0]) and (snakePosition[1] == fruitPosition[1]):
+
+        fruitSpawn = False
+
+    else:
+
+        # removes position of the back of the snake body array
+        snakeBody.pop()
+    
+
+    if not fruitSpawn:
+
+        fruitPosition = ((random.randrange(1, (windowSize_x - 10) // 20) * 20, (random.randrange(1, (windowSize_y - 10) // 20) * 20)))
+
+        
+    
+    fruitSpawn = True
+
+    # fills background
+    screen.fill(green)
+    
+    # creates green box for each position in snakeBody
     for pos in snakeBody:
 
-        pygame.draw.rect(screen, green, pygame.Rect(pos[0], pos[1], 20, 20))
-
+        pygame.draw.rect(screen, yellow, pygame.Rect(pos[0], pos[1], 20, 20))
+    
+    pygame.draw.rect(screen, red, pygame.Rect(fruitPosition[0], fruitPosition[1], 20, 20))
 
     pygame.display.flip()  # Refresh on-screen display
 
-    clock.tick(snakeSpeed)         # wait until next frame (at 60 FPS)
+    clock.tick(snakeSpeed)
+
 
