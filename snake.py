@@ -1,6 +1,8 @@
 import pygame
 import random
 
+import pygame.freetype
+
 # defining window size
 windowSize_x = 1280
 windowSize_y = 720
@@ -9,12 +11,13 @@ windowSize_y = 720
 green = pygame.Color(0, 100, 33)
 yellow = pygame.Color(255, 255, 0)
 red = pygame.Color(255, 0, 0)
+white = pygame.Color(0, 0, 0)
 
 pygame.init()
 
 pygame.display.set_caption("Snake Game")
 
-screen = pygame.display.set_mode((windowSize_x,windowSize_y)) #, pygame.SCALED | pygame.DOUBLEBUF)
+screen = pygame.display.set_mode((windowSize_x,windowSize_y)) 
 
 clock = pygame.time.Clock()
 
@@ -54,8 +57,21 @@ positionChange = {
 
 # Creates random x and y coordinates within dimensions of window
 fruitPosition = ((random.randrange(1, windowSize_x // 20) * 20, (random.randrange(1, windowSize_y // 20) * 20)))
-
 fruitSpawn = True
+
+# Variable to store user score
+score = 0
+
+
+def scoreboard ():
+    
+    # font and size for scoreboard
+    scoreFont = pygame.font.Font('Comic Sans MS.ttf', 30)
+
+    # create display on surface object
+    scoreSurface = scoreFont.render('Score: ' + str(score), True, white)
+    screen.blit(scoreSurface, (10, 10))
+  
 
 while True:
     # Process player inputs.
@@ -91,6 +107,8 @@ while True:
 
         fruitSpawn = False
 
+        score += 10
+
     else:
 
         # removes position of the back of the snake body array
@@ -99,9 +117,9 @@ while True:
 
     if not fruitSpawn:
 
-        fruitPosition = ((random.randrange(1, (windowSize_x - 10) // 20) * 20, (random.randrange(1, (windowSize_y - 10) // 20) * 20)))
+        fruitPosition = [random.randrange(2, (windowSize_x - 10) // 20) * 20, (random.randrange(2, (windowSize_y - 10) // 20) * 20)]
 
-        
+
     
     fruitSpawn = True
 
@@ -114,6 +132,8 @@ while True:
         pygame.draw.rect(screen, yellow, pygame.Rect(pos[0], pos[1], 20, 20))
     
     pygame.draw.rect(screen, red, pygame.Rect(fruitPosition[0], fruitPosition[1], 20, 20))
+
+    scoreboard()
 
     pygame.display.flip()  # Refresh on-screen display
 
