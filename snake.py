@@ -3,10 +3,12 @@ import random
 import time
 
 
-
 # defining window size
-windowSize_x = 1280
-windowSize_y = 720
+windowSize_x = 720
+windowSize_y = 560
+
+# defining block size
+blockSize = 40
 
 # defining colours
 green = pygame.Color(0, 100, 33)
@@ -21,17 +23,33 @@ pygame.display.set_caption("Snake Game")
 
 screen = pygame.display.set_mode((windowSize_x,windowSize_y)) 
 
+# load background image
+background = pygame.image.load('assets/images/snakeBackground.png')
+# load fruit image
+grape = pygame.image.load('assets/images/grape.png')
+# load snake head image
+snakeHead = pygame.image.load('assets/images/snakehead.png')
+# load snake body image
+snakeMiddle = pygame.image.load('assets/images/snakeMiddle.png')
+
+resizedBackground = pygame.transform.scale(background, (windowSize_x, windowSize_y))
+resizedGrape = pygame.transform.scale(grape, (blockSize, blockSize))
+resizedHead = pygame.transform.scale(snakeHead, (blockSize, blockSize))
+resizedMiddle = pygame.transform.scale(snakeMiddle, (blockSize, blockSize))
+# copy image content onto screen
+screen.blit(resizedBackground, (0, 0))
+
 clock = pygame.time.Clock()
 
 # define snake speed
-snakeSpeed = 15
+snakeSpeed = 12
 
 # define starting snake position and first 4 blocks of body
 snakePosition = [(windowSize_x//2), (windowSize_y//2)]
 snakeBody = [[(windowSize_x//2), (windowSize_y//2)], 
-             [((windowSize_x//2) - 20), (windowSize_y//2)], 
-             [((windowSize_x//2) - 40), (windowSize_y//2)], 
-             [((windowSize_x//2) - 60), (windowSize_y//2)]]
+             [((windowSize_x//2) - blockSize), (windowSize_y//2)], 
+             [((windowSize_x//2) - (2 * blockSize)), (windowSize_y//2)], 
+             [((windowSize_x//2) - (3 * blockSize)), (windowSize_y//2)]]
 
 
 # define default snake direction
@@ -51,14 +69,14 @@ oppositeDirection = {
 # Dictionary to map position changes
 positionChange = {
 
-    'UP': (0, -20),
-    'DOWN': (0, 20),
-    'RIGHT': (20, 0),
-    'LEFT': (-20, 0)
+    'UP': (0, -blockSize, 180),
+    'DOWN': (0, blockSize, 0),
+    'RIGHT': (blockSize, 0, 90),
+    'LEFT': (-blockSize, 0, 270)
 }
 
 # Creates random x and y coordinates within dimensions of window
-fruitPosition = ((random.randrange(1, windowSize_x // 20) * 20, (random.randrange(1, windowSize_y // 20) * 20)))
+fruitPosition = ((random.randrange(1, windowSize_x // blockSize) * blockSize, (random.randrange(1, windowSize_y // blockSize) * blockSize)))
 fruitSpawn = True
 
 # Variable to store user score
@@ -67,12 +85,13 @@ score = 0
 # Variable to store high score
 highScore = 0
 
+
 # function to display score
 def scoreboard ():
     
     # font and size for scoreboard
-    scoreFont = pygame.font.Font('Comic Sans MS.ttf', 30)
-    highscoreFont = pygame.font.Font('Comic Sans MS.ttf', 19)
+    scoreFont = pygame.font.Font('assets/data/Comic Sans MS.ttf', 30)
+    highscoreFont = pygame.font.Font('assets/data/Comic Sans MS.ttf', 19)
 
     # create display on surface object
     scoreSurface = scoreFont.render('Score: ' + str(score), True, white, black)
@@ -85,11 +104,10 @@ def scoreboard ():
 # function for gameover screen
 def gameover ():
 
-    # fills background
-    screen.fill(green)
+    screen.blit(resizedBackground, (0, 0))
 
     # font and size for gameover
-    gameoverFont = pygame.font.Font('Comic Sans MS.ttf', 50) 
+    gameoverFont = pygame.font.Font('assets/data/Comic Sans MS.ttf', 50) 
 
     # Render the two lines separately
     gameoverText = gameoverFont.render('Game Over', True, white, black)
@@ -97,9 +115,9 @@ def gameover ():
     highscoreText = gameoverFont.render('Highscore: ' + str(highScore), True, red, black)
 
     # Get the positions to center the text on the screen
-    gameoverRect = gameoverText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 - 40))
-    scoreRect = scoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 + 30))
-    highscoreRect = highscoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 + 100))
+    gameoverRect = gameoverText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 - 80))
+    scoreRect = scoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 -20))
+    highscoreRect = highscoreText.get_rect(center=(windowSize_x // 2, windowSize_y // 2 + 50))
 
     # Blit the text to the screen
     screen.blit(gameoverText, gameoverRect)
@@ -120,7 +138,7 @@ def gameover ():
 def updateHighscore ():
 
     # open file in read mode
-    f = open('score.txt', 'r')
+    f = open('assets/data/score.txt', 'r')
     # read all lines into a list
     firstLine = f.readline().strip()
     # save first line into variable 
@@ -132,7 +150,7 @@ def updateHighscore ():
     if score > highScore:
 
         # open file in write mode
-        file = open('score.txt', 'w')
+        file = open('assets/data/score.txt', 'w')
         # write current score in file
         file.write(str(score))
         # close file
@@ -140,6 +158,21 @@ def updateHighscore ():
 
     return highScore
 
+
+# funtion to spawn fruit
+def spawnFruit():
+
+    # create a set out of snake body positions
+    snakebodySet = set(tuple(pos) for pos in snakeBody)
+
+    # loops if fruit spawns in the same position as the snake
+    while True:
+
+        fruitPosition = [random.randrange(2, (windowSize_x - 10) // blockSize) * blockSize, (random.randrange(2, (windowSize_y - 10) // blockSize) * blockSize)]
+
+        if (tuple(fruitPosition) not in snakebodySet):
+
+            return fruitPosition
 
 
 while True:
@@ -168,6 +201,7 @@ while True:
     movement = positionChange[snakeDirection]
     snakePosition[0] += movement[0]
     snakePosition[1] += movement[1]
+    rotatedHead = pygame.transform.rotate(resizedHead, movement[2])
 
     # inserts new snake head position to the front of the snake body array
     snakeBody.insert(0, list(snakePosition))
@@ -182,16 +216,30 @@ while True:
 
     else:
 
-        # removes position of the back of the snake body array
-        snakeBody.pop()
+        
+        snakeBody.pop() # removes position of the back of the snake body array
     
 
     if not fruitSpawn:
 
-        fruitPosition = [random.randrange(2, (windowSize_x - 10) // 20) * 20, (random.randrange(2, (windowSize_y - 10) // 20) * 20)]
+        fruitPosition = spawnFruit()
 
-    # fills background
-    screen.fill(green)
+    screen.blit(resizedBackground, (0, 0))
+
+
+    fruitSpawn = True
+    
+    # applies snakehead image to first block of snake
+    screen.blit(rotatedHead, snakePosition)
+    
+    # creates body
+    for pos in snakeBody[1:]:
+
+        # creates a red box for the fruit
+        screen.blit(resizedMiddle, pos)
+    
+    # creates a red box for the fruit
+    screen.blit(resizedGrape, fruitPosition)
 
     # call update highscore function
     highScore = updateHighscore()
@@ -199,26 +247,13 @@ while True:
     # call scoreboard function to display current score
     scoreboard()
 
-    fruitSpawn = True
-    
-    
-    
-    # creates green box for each position in snakeBody
-    for pos in snakeBody:
-
-        pygame.draw.rect(screen, yellow, pygame.Rect(pos[0], pos[1], 20, 20))
-    
-    # creates a red box for the fruit
-    pygame.draw.rect(screen, red, pygame.Rect(fruitPosition[0], fruitPosition[1], 20, 20))
-
 
     # gameover conditions
-
-    if (snakePosition[0]) < 0 or (snakePosition[0] > windowSize_x - 20): # if snake goes out of bounds in x plane
+    if (snakePosition[0]) < 0 or (snakePosition[0] > windowSize_x - blockSize): # if snake goes out of bounds in x plane
 
         gameover()
 
-    if (snakePosition[1]) < 0 or (snakePosition[1] > windowSize_y - 20): # if snake goes out of bounds in y plane
+    if (snakePosition[1]) < 0 or (snakePosition[1] > windowSize_y - blockSize): # if snake goes out of bounds in y plane
 
         gameover()
 
